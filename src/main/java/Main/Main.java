@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -27,7 +28,7 @@ public class Main {
             Socket socket = ss.accept();
             InputStream in = socket.getInputStream();
             OutputStream out = socket.getOutputStream();
-            byte[] buffer = new byte[2048];
+            byte[] buffer = new byte[3072];
             int nBytes = in.read(buffer);
             String str = new String(buffer, 0, nBytes);
             String[] linhas = str.split("\n");
@@ -55,7 +56,7 @@ public class Main {
                         //Escrevendo o cabeçalho
                         bout.write(header.getBytes(StandardCharsets.UTF_8));
                         //Escrevendo o arquivo
-                        byte[] buffer2 = new byte[2048];
+                        byte[] buffer2 = new byte[3072];
                         int nBytes2 = fileIn.read(buffer2);
 
                         do{
@@ -75,6 +76,7 @@ public class Main {
                     String saida = processaVariaveis(bout);
 
                     synchronized (logs) {
+                        Timestamp time = new Timestamp(System.currentTimeMillis());
                         if(verificaArquivo(recurso)){
                             System.out.println("Essa cadeira ja foi agendada");
                             socket.close();
@@ -83,29 +85,30 @@ public class Main {
                         if(recurso.contains("/cadeira")){
                             String[] arr = recurso.split("\\?");
                             if(arr[1].contains("numero")){
-                                int idCadeira = Integer.parseInt(arr[1].split("=")[1]);
-                                logWritter.write("cadeira-" + idCadeira + "-Agendada\n");
+                                int idCadeira = Integer.parseInt(arr[1].split("&")[0].split("=")[1]);
+                                String nome = arr[1].split("&")[1].split("=")[1];
+
+                                logWritter.write("<"+time+"> cadeira-" + idCadeira + "-Agendada ("+ nome + ")\n");
                                 logWritter.newLine();
                                 logWritter.flush();
-                                saida.replace("<div id='cadeira-" + idCadeira + "' class='cadeira'>" + idCadeira + "</div>", "<div id='cadeira-" + idCadeira + "' class='cadeira busy'>" + idCadeira + "</div>" );
+                                saida.replace("<div id='cadeira-" + idCadeira + "' class='cadeira'><div class='bar'></div> <div class='mid-area'><div class='encosto'></div>  <p>" + idCadeira + "</p></div><div class='bar'></div></div>", "<div id='cadeira-" + idCadeira + "' class='cadeira busy'><div class='bar'></div> <div class='mid-area'><div class='encosto'></div>  <p>" + idCadeira + "</p></div><div class='bar'></div></div>");
 
                             }
-
                         }
+
+
+
                         out.write((saida.getBytes(StandardCharsets.UTF_8)));
-                        out.write(bout.toByteArray());
                         out.flush();
-                        Thread.sleep(20000);
                         socket.close();
 
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
                 }
             });
             thread.start();
+
 
 
 
@@ -119,8 +122,10 @@ public class Main {
     public static boolean verificaArquivo(String recurso) throws FileNotFoundException {
         Scanner scanner = new Scanner(new FileInputStream("logs.txt"), "UTF-8");
         String cadeiraCodigo = "";
+
         if (recurso.contains("cadeira")) {
-            cadeiraCodigo = recurso.split("\\?")[1].split("=")[1];
+            cadeiraCodigo = recurso.split("\\?")[1].split("&")[0].split("=")[1];
+
         }
 
         while (scanner.hasNextLine()) {
@@ -128,7 +133,8 @@ public class Main {
 
 
             // Verifica se a linha contém o conteúdo desejado
-            if (linha.contains("cadeira-" + cadeiraCodigo + "-Agendada")) {
+
+            if (linha.contains("cadeira-"+cadeiraCodigo)) {
                 System.out.println("O arquivo de logs já contém o conteúdo desejado.");
                 scanner.close();
                 return true;
@@ -146,7 +152,7 @@ public class Main {
 
         cadeirasHtml = new StringBuilder("");
         for (int i = 0; i < 42; i++) {
-            String cadeira = "<div id='cadeira-" + i + "' class='cadeira'>" + i + "</div>";
+            String cadeira = "<div id='cadeira-" + i + "' class='cadeira'><div class='bar'></div> <div class='mid-area'><div class='encosto'></div>  <p>" + i + "</p></div><div class='bar'></div></div>";
             cadeirasHtml.append(cadeira);
         }
 

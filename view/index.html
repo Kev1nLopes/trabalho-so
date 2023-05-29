@@ -35,7 +35,7 @@
         .grid-cadeiras{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 5px;
+            gap: 20px;
         }
         .busy{
             background: gray;
@@ -44,16 +44,78 @@
        .cadeira{
            width: 100%;
            height: 50px;
+           display: grid;
+           grid-template-columns: 1fr 3fr 1fr;
+           cursor: pointer;
+       }
+       .cadeira p{
            display: flex;
-           flex-direction: column;
            justify-content: center;
            align-items: center;
+           background: chocolate;
+           color: white;
+           height: 100%;
+       }
+       .cadeira.busy p{
+           background: gray;
+       }
+       .mid-area{
+           display: flex;
+           flex-direction: column;
+       }
+       .mid-area .encosto{
+           width: 100%;
+           height: 20px;
+           background: saddlebrown;
+       }
+       .cadeira .bar{
+           background: saddlebrown;
+           margin: 1px;
        }
        .right-side{
            width: 100%;
            height: 100%;
            background: blue;
        }
+
+        .message-area{
+            height: fit-content;
+            width: 150px;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            border-radius: 1rem;
+            bottom: 50px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+
+        }
+        .message{
+            height: 50px;
+            width: 100%;
+            border-radius: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+        .message.success{
+            background: green;
+            color: white;
+
+        }
+        .message.error{
+            background: red;
+            color: white;
+
+        }
+
+        
+        
 
 
     </style>
@@ -63,32 +125,50 @@
         <ul class="grid-cadeiras">
             ${Cadeiras}
         </ul>
-        <div class="right-side">
-            testando
-        </div>
+<!--        <div class="right-side">-->
+<!--            testando-->
+<!--        </div>-->
+
+    </div>
+    <div class="message-area">
+
+    </div>
 
     </div>
 
     <script>
-        let c = (el) => document.querySelector(el);
-        let cs = (el) => document.querySelectorAll(el);
+        let qs = (el) => document.querySelector(el);
+        let qall = (el) => document.querySelectorAll(el);
 
 
-        c('.grid-default').style.gridTemplateColumns = '1fr';
-        c('.right-side').style.display = 'none';
+        qs('.grid-default').style.gridTemplateColumns = '1fr';
+
         const cadeiras = Array.from(document.querySelectorAll('.cadeira')) ;
+        let nome = ""
         cadeiras.map(item =>{
 
-            item.addEventListener('click', (event) =>{
-                if(event.target.classList.contains('busy')){
-                    return;
-                }
-                event.target.classList.add('busy');
-                let num = event.target.getAttribute('id').split('-')[1];
-                c('.grid-default').style.gridTemplateColumns = '3fr 1fr';
-                c('.right-side').style.display = 'flex';
 
-                fetch(`http://localhost:3000/cadeira?numero=${num}`);
+            item.addEventListener('click', (event) =>{
+                if(nome.length == 0){
+                  nome = window.prompt("informe seu nome");
+                }
+
+                item.classList.add('busy');
+                let num = item.getAttribute('id').split('-')[1];
+                console.log(num);
+                // c('.grid-default').style.gridTemplateColumns = '3fr 1fr';
+                // c('.right-side').style.display = 'flex';
+
+
+                fetch(`http://localhost:3000/cadeira?numero=${num}&nome=${nome}`)
+                    .then(res => {
+                        document.querySelector('.message-area').innerHTML = `<div class='message success '>${num} agendada com sucesso</div>`;
+                    })
+                    .catch(error => {
+
+                        document.querySelector('.message-area').innerHTML = `<div class='message error '>A cadeira ${num} ja foi agendada, tente outra!</div>`;
+                        document.querySelector(`#cadeira-${num}`).querySelector('p').style.backgroundColor = 'red';
+                    });
                 return;
 
             })
