@@ -21,7 +21,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         ServerSocket ss = new ServerSocket(3000);
-        OutputStream logs = new FileOutputStream("logs.txt");
+        OutputStream logs = new FileOutputStream("./volume/logs.txt");
 
 
         while (true){
@@ -120,7 +120,7 @@ public class Main {
 
 
     public static boolean verificaArquivo(String recurso) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new FileInputStream("logs.txt"), "UTF-8");
+        Scanner scanner = new Scanner(new FileInputStream("./volume/logs.txt"), "UTF-8");
         String cadeiraCodigo = "";
 
         if (recurso.contains("cadeira")) {

@@ -29,7 +29,7 @@ public class ThreadCadeira extends Thread {
 
     public synchronized String changeLogs() throws IOException {
         try {
-            OutputStream logs = new FileOutputStream("logs.txt");
+            OutputStream logs = new FileOutputStream("./volume/logs.txt");
             synchronized (logs) {
 
             }
